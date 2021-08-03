@@ -23,9 +23,9 @@ namespace ExcelCopy
         
         static void Main(string[] args)
         {
-            string sourcePath = @"C:\Users\kashm\OneDrive\Desktop\PYJ\Excel_Sample_for Csharp\01_Excel파일 복사하기"; // 원본 엑셀 파일 경로
+            string sourcePath = @"C:\01_Excel파일 복사하기"; // 원본 엑셀 파일 경로
             string File = "Sample.xlsx"; // 원본 엑셀 파일 명 
-            string targetPath = @"C:\Users\kashm\OneDrive\Desktop\PYJ\Excel_Sample_for Csharp\01_Excel파일 복사하기\생성결과"; // 실행 결과 저장 경로
+            string targetPath = @"C:\\01_Excel파일 복사하기\생성결과"; // 실행 결과 저장 경로
             // IO 함수를 이용하여 파일 경로 완성
             string rawFilePath = System.IO.Path.Combine(sourcePath, File);
             int num = 500; // 복사할 파일 개수
