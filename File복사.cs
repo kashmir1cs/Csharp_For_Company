@@ -14,7 +14,8 @@ using System.Diagnostics;
 /// format 함수
 /// Stopwatch class 활용하여 시간 측정하기 
 /// </summary>
-
+// 파일 복사 : System.IO.File.Copy(sourceFile, destFile, true);
+// Directory 생성 :  System.IO.Directory.CreateDirectory(targetPath);
 namespace ExcelCopy
 {
     class Excopy01
