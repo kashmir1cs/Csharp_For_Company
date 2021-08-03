@@ -25,7 +25,7 @@ namespace Excel활용
             // Cells 속성 + 반복문 활용 
             Stopwatch stopwatch1 = new Stopwatch(); // 객체 선언
             stopwatch1.Start();
-            string xlpath1 = @"C:\Users\kashm\OneDrive\Desktop\PYJ\Excel_Sample_for Csharp\02_Excel다루기_기초";
+            string xlpath1 = @"C:\Excel_Sample_for Csharp\02_Excel다루기_기초";
             string xlfile1 = "sample1.xlsx";
             string samplefile1 = System.IO.Path.Combine(xlpath1, xlfile1);
             // 0. 엑셀 다루기 기초 문법 
@@ -98,9 +98,9 @@ namespace Excel활용
             Console.WriteLine("파일저장");
             stopwatch.Stop();//시간측정 끝
             Console.WriteLine("소요시간 {0} ms", stopwatch.ElapsedMilliseconds);
-            wb1.SaveAs(samplefile2);
+            wb1.SaveAs(samplefile2); // 객체 저장하기 
 
-            wb1.Close();
+            wb1.Close(); //해당 객체는 닫아야 접근 가능 
         }
     }
 }
