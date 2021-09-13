@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-
+// Linq 활용
 namespace Duplicate확인
 {
     class Program
