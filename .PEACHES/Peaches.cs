@@ -32,7 +32,8 @@ namespace Peaches
             pBarCheckStatus.Maximum = 100;
             pBarCheckStatus.Minimum = 0;
             pBarCheckStatus.Value = 0;
-            tbAbout.Text = "사용방법 : \r\n 1. Weld Type File선택 (xml) \r\n 2. SSU에서 ISSUE한 파일이 있는 Folder 선택 \r\n 3. Weld Plan Check Click";
+            tbAbout.Text = "사용방법 : \r\n 1. Weld Type File선택 (xml) \r\n 2. SSU에서 ISSUE한 파일이 있는 Folder 선택 \r\n 3. Weld Plan Check Click \r\n";
+            tbAbout.Text += "v1.1 수정 사항 : \r\n - Error있는 파일명만 표시되도록 변경 \r\n - 파일 전체경로 대신 파일명만 상태창에 나오게 표시";
 
         }
         public void LabelCheck()
@@ -246,7 +247,9 @@ namespace Peaches
                     pBarCheckStatus.Value = Convert.ToInt32(p);
                     pBarCheckStatus.Update();
                     //tbCheckStatus.Text += p.ToString() + Environment.NewLine; //진행율 확인
-                    tbCheckStatus.Text += "Weld Plan :" + ExcelFiles[i] + " - 확인 시작" + Environment.NewLine;
+                    // 에러 있는 파일만 상태창에 나오도록 표시
+                    //tbCheckStatus.Text += "Weld Plan :" + ExcelFiles[i] + " - 확인 시작" + Environment.NewLine;
+
 
                     // Excel Class 선언
                     // ExcelFiles에 있는 파일 하나씩 실행
@@ -254,8 +257,12 @@ namespace Peaches
                     EX.Worksheet WeldPlanExcelSheet = null;
                     WeldPlanExcelFile = ExFile.Workbooks.Open(Filename: ExcelFiles[i], ReadOnly: true);
                     WeldPlanExcelSheet = WeldPlanExcelFile.Worksheets.Item[1];
-                    int RowEnd = WeldPlanExcelSheet.Range["A1"].End[EX.XlDirection.xlDown].Row; //마지막 행번호 변수 할당*/
-                                                                                                // Weld Plan값을 입력받을 List 선언
+                    int RowEnd = WeldPlanExcelSheet.Range["A1"].End[EX.XlDirection.xlDown].Row;
+                    
+                    
+                    //마지막 행번호 변수 할당*/
+                    // Weld Plan값을 입력받을 List 선언
+
 
                     /*                FileStream ExStream = File.Open(ExcelFiles[i], FileMode.Open, FileAccess.Read);
                                     IExcelDataReader excelReader;
@@ -268,6 +275,9 @@ namespace Peaches
                     List<string> WeldTypeList = new List<string>(); //G열
                     List<string> ShopFieldList = new List<string>(); //H열
                     List<string> ShopSpoolList = new List<string>(); //B열,D열 함께입력
+                    // Linq Except 메소드 이용
+                    IEnumerable<string> diffWeldType = WeldTypeList.Except(WeldSkeyList);
+                    // XML에 들어있지 않은 Weld Type 검색 (차집합이용)
 
                     // 중복 검사
                     for (int j = 2; j <= RowEnd; j++)
@@ -282,45 +292,52 @@ namespace Peaches
                         ShopSpoolList.Add(WeldPlanExcelSheet.Range["B" + j].Value + "_" + WeldPlanExcelSheet.Range["H" + j].Value);
                     }
                     // HUman Error 확인 
+                    // 이상 없는 파일은 Pass 
                     // 1. Joint 중복 확인
-                    if (JointList.Count == JointList.Distinct().Count())
+                    // 중복된 번호도 상태 표시 
+                    if(JointList.Count != JointList.Distinct().Count()|| ShopSpoolList.Contains("_SHOP")|| diffWeldType.ToList().Count > 0)
                     {
-                        tbCheckStatus.Text += " 1) Joint no. 중복 확인 : Joint No. 중복 없음" + Environment.NewLine;
+                        tbCheckStatus.Text += "Weld Plan :" +  Path.GetFileName(ExcelFiles[i]) + " 에서 Error가 확인되었습니다.." + Environment.NewLine;
                     }
-                    else
+                    if (JointList.Count != JointList.Distinct().Count()) // 중복된 값이 있을 경우 List 원소 개수가 달라짐
                     {
-                        tbCheckStatus.Text += " 1) Joint no. 중복 확인 : Joint No. 중복 입력" + Environment.NewLine;
+                        // 중복된 Joint NO.만 Dictionary 형태로 저장 
+                        var dictJointCount= JointList.GroupBy(joint=>joint).Where(g=>g.Count()>1).ToDictionary(y => y.Key, x => x.Count());
+                        tbCheckStatus.Text += "Joint no. 중복 입력 되어 있습니다." + Environment.NewLine;
+                        foreach(KeyValuePair<string,int> items in dictJointCount)
+                        {
+                            tbCheckStatus.Text += " Joint NO."+items.Key + " - "+ items.Value.ToString()+"회 입력" + Environment.NewLine;
+                        }
                         // Error 확인한 Weld Plan 파일 List에 추가
                         FilteredExcelFiles.Add(ExcelFiles[i]);
+                        // Error 있는 Excel파일은 제거
+                        
                     }
                     // 2. Spool No. 미표기 확인
                     if (ShopSpoolList.Contains("_SHOP"))
                     {
-                        tbCheckStatus.Text += " 2) Shop Joint Spool no. 미입력 : 있음" + Environment.NewLine;
+                        tbCheckStatus.Text += "- Spool No.가 입력 되어 있지 않습니다." + Environment.NewLine;
+
                         if (FilteredExcelFiles.Contains(ExcelFiles[i]) == false)
                         {
                             FilteredExcelFiles.Add(ExcelFiles[i]);
+                           
+                           
                         }
 
                     }
-                    else
-                    {
-                        tbCheckStatus.Text += " 2) Shop Joint Spool no. 미입력 : 없음" + Environment.NewLine;
-                    }
                     // 3. 미등록된 Weld Type 입력
-                    // Linq Except 메소드 이용
-                    IEnumerable<string> diffWeldType = WeldTypeList.Except(WeldSkeyList);
+                    
                     if (diffWeldType.ToList().Count > 0)
                     {
-                        tbCheckStatus.Text += " 3) Weld Type 입력 : 미등록 Weld Type 입력 (공백포함)" + Environment.NewLine;
+                        tbCheckStatus.Text += "- 미등록 Weld Type 입니다." + Environment.NewLine;
                         if (FilteredExcelFiles.Contains(ExcelFiles[i]) == false)
                         {
                             FilteredExcelFiles.Add(ExcelFiles[i]);
+                            // Error 있는 Excel파일은 제거
+                            
+
                         }
-                    }
-                    else
-                    {
-                        tbCheckStatus.Text += " 3) Weld Type 입력 : OK" + Environment.NewLine;
                     }
                     WeldPlanExcelFile.Close();
                 }
